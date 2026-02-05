@@ -1,6 +1,6 @@
 """RCS Business Messaging API client."""
 
-import json
+import time
 from typing import Optional
 
 import requests
@@ -8,9 +8,10 @@ from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 
 from .config import Config
-from .models import TextMessage, RichCard
 
 RBM_SCOPE = "https://www.googleapis.com/auth/rcsbusinessmessaging"
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 1  # seconds
 
 
 class RCSError(Exception):
@@ -69,46 +70,71 @@ class RCSClient:
 
     def _request(self, method: str, path: str, body: Optional[dict] = None) -> dict:
         url = self._url(path)
-        try:
-            resp = self._session.request(
-                method,
-                url,
-                headers=self._headers(),
-                json=body,
-                timeout=self.config.timeout,
-            )
-        except requests.exceptions.Timeout:
-            raise NetworkError("request timed out", status_code=None)
-        except requests.exceptions.ConnectionError as e:
-            raise NetworkError(f"connection failed: {e}", status_code=None)
+        last_exception = None
 
-        if resp.status_code == 401 or resp.status_code == 403:
-            raise AuthenticationError(
-                f"authentication error ({resp.status_code})",
-                status_code=resp.status_code,
-                body=resp.text,
-            )
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                resp = self._session.request(
+                    method,
+                    url,
+                    headers=self._headers(),
+                    json=body,
+                    timeout=self.config.timeout,
+                )
+            except requests.exceptions.Timeout:
+                last_exception = NetworkError("request timed out", status_code=None)
+                if attempt < MAX_RETRIES:
+                    time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
+                    continue
+                raise last_exception
+            except requests.exceptions.ConnectionError as e:
+                last_exception = NetworkError(f"connection failed: {e}", status_code=None)
+                if attempt < MAX_RETRIES:
+                    time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
+                    continue
+                raise last_exception
 
-        if resp.status_code >= 400:
-            raise APIError(
-                f"API error ({resp.status_code})",
-                status_code=resp.status_code,
-                body=resp.text,
-            )
+            if resp.status_code in (401, 403):
+                raise AuthenticationError(
+                    f"authentication error ({resp.status_code})",
+                    status_code=resp.status_code,
+                    body=resp.text,
+                )
 
-        if resp.status_code == 204 or not resp.text:
-            return {}
-        return resp.json()
+            if resp.status_code == 429 or resp.status_code >= 500:
+                if attempt < MAX_RETRIES:
+                    time.sleep(RETRY_BASE_DELAY * (2 ** attempt))
+                    continue
+                raise APIError(
+                    f"API error ({resp.status_code})",
+                    status_code=resp.status_code,
+                    body=resp.text,
+                )
+
+            if resp.status_code >= 400:
+                raise APIError(
+                    f"API error ({resp.status_code})",
+                    status_code=resp.status_code,
+                    body=resp.text,
+                )
+
+            if resp.status_code == 204 or not resp.text:
+                return {}
+            return resp.json()
+
+        if last_exception:
+            raise last_exception
+        return {}
 
     def _phone_path(self, phone: str) -> str:
         return f"/v1/phones/{phone}"
 
     def send_message(self, phone: str, message) -> dict:
-        """Send a text or rich card message.
+        """Send a message (text, rich card, carousel, or media).
 
         Args:
             phone: Recipient phone number in E.164 format (e.g. +14155551234).
-            message: A TextMessage or RichCard instance.
+            message: A message instance with to_api_payload() and message_id.
 
         Returns:
             API response dict containing the message resource.
@@ -155,3 +181,46 @@ class RCSClient:
         """
         path = f"{self._phone_path(phone)}/capabilities:requestCapabilityCallback"
         return self._request("GET", path)
+
+    def send_event(self, phone: str, event_type: str, message_id: str = "") -> dict:
+        """Send an agent event (typing indicator or read receipt).
+
+        Args:
+            phone: Recipient phone number in E.164 format.
+            event_type: "IS_TYPING" or "READ".
+            message_id: Required for READ events — the message being marked read.
+
+        Returns:
+            API response dict (usually empty).
+        """
+        path = f"{self._phone_path(phone)}/agentEvents"
+        payload = {
+            "eventType": event_type,
+        }
+        if message_id:
+            payload["messageId"] = message_id
+        return self._request("POST", path, payload)
+
+    def invite_tester(self, phone: str) -> dict:
+        """Invite a phone number as a tester for the agent.
+
+        Args:
+            phone: Phone number in E.164 format.
+
+        Returns:
+            API response dict with tester resource.
+        """
+        path = f"{self._phone_path(phone)}/testers"
+        return self._request("POST", path, {})
+
+    def remove_tester(self, phone: str) -> dict:
+        """Remove a phone number from the agent's testers.
+
+        Args:
+            phone: Phone number in E.164 format.
+
+        Returns:
+            Empty dict on success.
+        """
+        path = f"{self._phone_path(phone)}/testers"
+        return self._request("DELETE", path)
