@@ -8,10 +8,20 @@ terminal or by scripts and programs that need to send messages.
 
 - Send plain text RCS messages
 - Send rich cards with titles, descriptions, and images
-- Attach suggested replies and actions (dial, open URL) to messages
+- Send carousel messages with multiple scrollable cards
+- Send standalone media files (images, videos, PDFs)
+- Attach suggested replies and actions to messages:
+  - Dial (click-to-call)
+  - Open URL
+  - Share location
+  - View location (map pin)
+  - Create calendar event
+- Send agent events (typing indicators, read receipts)
+- Manage testers (invite and remove)
 - Check message delivery status
 - Revoke previously sent messages
 - Check RCS capability of phone numbers
+- Automatic retry with exponential backoff for transient failures
 - Configuration via file, environment variables, or CLI flags
 - JSON output mode for scripting
 - Deterministic exit codes for programmatic use
@@ -91,7 +101,17 @@ rcsclient send text --to +14155551234 \
 rcsclient send text --to +14155551234 \
   --message "Need help?" \
   --dial "Call Support" "+18005551234" \
-  --url "Visit Website" "https://example.com"
+  --url "Visit Website" "https://example.com" \
+  --share-location "Share your location"
+```
+
+### Send a text message with location and calendar actions
+
+```bash
+rcsclient send text --to +14155551234 \
+  --message "See you there!" \
+  --location "Our Office" 37.7749 -122.4194 "HQ" \
+  --calendar "Add to calendar" "Team Sync" 2025-01-15T10:00:00Z 2025-01-15T11:00:00Z "Weekly meeting"
 ```
 
 ### Send a rich card
@@ -102,6 +122,44 @@ rcsclient send richcard --to +14155551234 \
   --description "Your order #1234 has been shipped and is on the way." \
   --image-url "https://example.com/tracking.png" \
   --image-height TALL
+```
+
+### Send a carousel
+
+```bash
+rcsclient send carousel --to +14155551234 \
+  --card "Summer Sale" "50% off everything" "https://example.com/sale.jpg" \
+  --card "New Arrivals" "Check out what's new" "https://example.com/new.jpg" \
+  --card "Free Shipping" "On orders over $50" \
+  --card-width MEDIUM
+```
+
+Each `--card` takes TITLE DESCRIPTION and an optional IMAGE_URL. At least 2
+cards are required.
+
+### Send a media file
+
+```bash
+rcsclient send media --to +14155551234 \
+  --file-url "https://example.com/photo.jpg" \
+  --content-type image/jpeg
+
+rcsclient send media --to +14155551234 \
+  --file-url "https://example.com/video.mp4" \
+  --content-type video/mp4 \
+  --thumbnail-url "https://example.com/thumb.jpg"
+```
+
+### Send a typing indicator
+
+```bash
+rcsclient event --to +14155551234 --type IS_TYPING
+```
+
+### Send a read receipt
+
+```bash
+rcsclient event --to +14155551234 --type READ --message-id msg-abc123
 ```
 
 ### Check message delivery status
@@ -120,6 +178,18 @@ rcsclient revoke --to +14155551234 --message-id msg-abc123
 
 ```bash
 rcsclient capability --to +14155551234
+```
+
+### Invite a tester
+
+```bash
+rcsclient tester invite --phone +14155551234
+```
+
+### Remove a tester
+
+```bash
+rcsclient tester remove --phone +14155551234
 ```
 
 ### JSON output for scripting
@@ -152,6 +222,18 @@ failure.
 | 5    | Network / connectivity error  |
 | 6    | Timeout                       |
 
+## Retry Behavior
+
+Transient failures are retried automatically up to 3 times with exponential
+backoff (1s, 2s, 4s). Retried errors include:
+
+- HTTP 429 (rate limit)
+- HTTP 5xx (server errors)
+- Connection errors
+- Timeouts
+
+Client errors (4xx) and authentication errors (401/403) are not retried.
+
 ## Project Structure
 
 ```
@@ -176,7 +258,7 @@ rcsclient/
 ## Running Tests
 
 ```bash
-pip install pytest responses
+pip install pytest
 python -m pytest tests/ -v
 ```
 

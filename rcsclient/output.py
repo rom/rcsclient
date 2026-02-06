@@ -46,7 +46,23 @@ def format_capability_result(data: dict) -> str:
     return "Phone supports RCS (no detailed features returned)."
 
 
-def print_result(data: dict, formatter, format_arg: str, json_mode: bool, quiet: bool):
+def format_event_result(data: dict, event_type: str) -> str:
+    if event_type == "IS_TYPING":
+        return "Typing indicator sent."
+    elif event_type == "READ":
+        return "Read receipt sent."
+    return "Event sent."
+
+
+def format_tester_invite_result(data: dict, phone: str) -> str:
+    return f"Tester invited: {phone}"
+
+
+def format_tester_remove_result(data: dict, phone: str) -> str:
+    return f"Tester removed: {phone}"
+
+
+def print_result(data: dict, formatter, format_arg, json_mode: bool, quiet: bool):
     """Print a result to stdout using the appropriate format.
 
     Args:
