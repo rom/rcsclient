@@ -112,13 +112,13 @@ with scope `https://www.googleapis.com/auth/rcsbusinessmessaging`.
 
 | Flag                  | Env Variable      | Description                          |
 |-----------------------|-------------------|--------------------------------------|
-| `--agent-id ID`       | `RCS_AGENT_ID`    | RBM agent identifier                 |
+| `--agent_id ID`       | `RCS_AGENT_ID`    | RBM agent identifier                 |
 | `--credentials PATH`  | `RCS_CREDENTIALS` | Path to service account key file     |
 | `--config PATH`       |                   | Config file path                     |
 | `--json`              |                   | Force JSON output                    |
 | `--quiet`             |                   | Suppress non-error output            |
 | `--timeout SECS`      | `RCS_TIMEOUT`     | HTTP request timeout (default: 30)   |
-| `--base-url URL`      | `RCS_BASE_URL`    | API base URL override                |
+| `--base_url URL`      | `RCS_BASE_URL`    | API base URL override                |
 
 ### Commands
 
@@ -130,7 +130,7 @@ rcsclient send text --to +14155551234 --message "Pick one" \
 
 # Rich cards
 rcsclient send richcard --to +14155551234 --title "Order Update" \
-    --description "Your order shipped" --image-url https://example.com/img.jpg
+    --description "Your order shipped" --image_url https://example.com/img.jpg
 
 # Carousel messages
 rcsclient send carousel --to +14155551234 \
@@ -139,26 +139,26 @@ rcsclient send carousel --to +14155551234 \
 
 # Media files
 rcsclient send media --to +14155551234 \
-    --file-url "https://example.com/photo.jpg" --content-type image/jpeg
+    --file_url "https://example.com/photo.jpg" --content_type image/jpeg
 
 # Suggested actions (all message types)
 rcsclient send text --to +14155551234 --message "Need help?" \
     --dial "Call Support" "+18005551234" \
     --url "Visit Website" "https://example.com" \
-    --share-location "Share your location" \
+    --share_location "Share your location" \
     --location "Our Office" 37.7749 -122.4194 "HQ" \
     --calendar "Add meeting" "Team Sync" 2025-01-15T10:00:00Z 2025-01-15T11:00:00Z
 
 # Message management
-rcsclient status --to +14155551234 --message-id MSG_ID
-rcsclient revoke --to +14155551234 --message-id MSG_ID
+rcsclient status --to +14155551234 --message_id MSG_ID
+rcsclient revoke --to +14155551234 --message_id MSG_ID
 
 # Capability check
 rcsclient capability --to +14155551234
 
 # Agent events
 rcsclient event --to +14155551234 --type IS_TYPING
-rcsclient event --to +14155551234 --type READ --message-id MSG_ID
+rcsclient event --to +14155551234 --type READ --message_id MSG_ID
 
 # Tester management
 rcsclient tester invite --phone +14155551234
@@ -218,7 +218,7 @@ All message types support suggested replies and actions:
 | Reply           | `--reply TEXT`      | Quick reply chip                      |
 | Dial            | `--dial LABEL NUM`  | Opens dialer with phone number        |
 | Open URL        | `--url LABEL URL`   | Opens browser to URL                  |
-| Share Location  | `--share-location`  | Prompts user to share their location  |
+| Share Location  | `--share_location`  | Prompts user to share their location  |
 | View Location   | `--location`        | Opens map at lat/long                 |
 | Calendar Event  | `--calendar`        | Creates calendar event                |
 

@@ -26,7 +26,7 @@ class Config:
 
     def validate(self) -> None:
         if not self.agent_id:
-            raise ConfigError("agent_id is required (--agent-id or RCS_AGENT_ID)")
+            raise ConfigError("agent_id is required (--agent_id or RCS_AGENT_ID)")
         if not self.credentials_file:
             raise ConfigError(
                 "credentials file is required (--credentials or RCS_CREDENTIALS)"
