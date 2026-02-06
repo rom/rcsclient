@@ -56,7 +56,7 @@ rcsclient --help
 
 The client reads configuration from three sources (highest priority first):
 
-1. **CLI flags** (`--agent-id`, `--credentials`, etc.)
+1. **CLI flags** (`--agent_id`, `--credentials`, etc.)
 2. **Environment variables** (`RCS_AGENT_ID`, `RCS_CREDENTIALS`, `RCS_TIMEOUT`, `RCS_BASE_URL`)
 3. **Config file** (`~/.rcsclient.json`)
 
@@ -102,7 +102,7 @@ rcsclient send text --to +14155551234 \
   --message "Need help?" \
   --dial "Call Support" "+18005551234" \
   --url "Visit Website" "https://example.com" \
-  --share-location "Share your location"
+  --share_location "Share your location"
 ```
 
 ### Send a text message with location and calendar actions
@@ -120,8 +120,8 @@ rcsclient send text --to +14155551234 \
 rcsclient send richcard --to +14155551234 \
   --title "Order Shipped" \
   --description "Your order #1234 has been shipped and is on the way." \
-  --image-url "https://example.com/tracking.png" \
-  --image-height TALL
+  --image_url "https://example.com/tracking.png" \
+  --image_height TALL
 ```
 
 ### Send a carousel
@@ -131,7 +131,7 @@ rcsclient send carousel --to +14155551234 \
   --card "Summer Sale" "50% off everything" "https://example.com/sale.jpg" \
   --card "New Arrivals" "Check out what's new" "https://example.com/new.jpg" \
   --card "Free Shipping" "On orders over $50" \
-  --card-width MEDIUM
+  --card_width MEDIUM
 ```
 
 Each `--card` takes TITLE DESCRIPTION and an optional IMAGE_URL. At least 2
@@ -141,13 +141,13 @@ cards are required.
 
 ```bash
 rcsclient send media --to +14155551234 \
-  --file-url "https://example.com/photo.jpg" \
-  --content-type image/jpeg
+  --file_url "https://example.com/photo.jpg" \
+  --content_type image/jpeg
 
 rcsclient send media --to +14155551234 \
-  --file-url "https://example.com/video.mp4" \
-  --content-type video/mp4 \
-  --thumbnail-url "https://example.com/thumb.jpg"
+  --file_url "https://example.com/video.mp4" \
+  --content_type video/mp4 \
+  --thumbnail_url "https://example.com/thumb.jpg"
 ```
 
 ### Send a typing indicator
@@ -159,19 +159,19 @@ rcsclient event --to +14155551234 --type IS_TYPING
 ### Send a read receipt
 
 ```bash
-rcsclient event --to +14155551234 --type READ --message-id msg-abc123
+rcsclient event --to +14155551234 --type READ --message_id msg-abc123
 ```
 
 ### Check message delivery status
 
 ```bash
-rcsclient status --to +14155551234 --message-id msg-abc123
+rcsclient status --to +14155551234 --message_id msg-abc123
 ```
 
 ### Revoke a sent message
 
 ```bash
-rcsclient revoke --to +14155551234 --message-id msg-abc123
+rcsclient revoke --to +14155551234 --message_id msg-abc123
 ```
 
 ### Check RCS capability

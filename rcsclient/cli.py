@@ -53,7 +53,7 @@ def _add_suggestion_args(parser):
     parser.add_argument("--url", nargs=2, action="append", default=[],
                         metavar=("LABEL", "URL"),
                         help="Add an open-URL action: LABEL URL")
-    parser.add_argument("--share-location", dest="share_location",
+    parser.add_argument("--share_location",
                         action="append", default=[], metavar="LABEL",
                         help="Add a share-location action with LABEL")
     parser.add_argument("--location", nargs="+", action="append", default=[],
@@ -70,7 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Send RCS messages from the command line.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument("--agent-id", help="RBM agent identifier")
+    parser.add_argument("--agent_id", help="RBM agent identifier")
     parser.add_argument("--credentials", help="Path to service account JSON key file")
     parser.add_argument("--config", help="Path to config file")
     parser.add_argument("--json", dest="json_mode", action="store_true",
@@ -78,7 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--quiet", "-q", action="store_true",
                         help="Suppress non-error output")
     parser.add_argument("--timeout", type=int, help="HTTP timeout in seconds")
-    parser.add_argument("--base-url", help="API base URL override")
+    parser.add_argument("--base_url", help="API base URL override")
 
     sub = parser.add_subparsers(dest="command", help="Command to run")
 
@@ -100,8 +100,8 @@ def build_parser() -> argparse.ArgumentParser:
                              help="Recipient phone (E.164)")
     card_parser.add_argument("--title", required=True, help="Card title")
     card_parser.add_argument("--description", required=True, help="Card description")
-    card_parser.add_argument("--image-url", help="Image URL for the card")
-    card_parser.add_argument("--image-height", default="MEDIUM",
+    card_parser.add_argument("--image_url", help="Image URL for the card")
+    card_parser.add_argument("--image_height", default="MEDIUM",
                              choices=["SHORT", "MEDIUM", "TALL"],
                              help="Image height (default: MEDIUM)")
     _add_suggestion_args(card_parser)
@@ -113,7 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     carousel_parser.add_argument("--card", nargs="+", action="append", default=[],
                                  metavar="ARG",
                                  help="Add a card: TITLE DESCRIPTION [IMAGE_URL]")
-    carousel_parser.add_argument("--card-width", default="MEDIUM",
+    carousel_parser.add_argument("--card_width", default="MEDIUM",
                                  choices=["SMALL", "MEDIUM"],
                                  help="Card width (default: MEDIUM)")
     _add_suggestion_args(carousel_parser)
@@ -122,13 +122,13 @@ def build_parser() -> argparse.ArgumentParser:
     media_parser = send_sub.add_parser("media", help="Send a media file message")
     media_parser.add_argument("--to", required=True, type=validate_phone,
                               help="Recipient phone (E.164)")
-    media_parser.add_argument("--file-url", required=True,
+    media_parser.add_argument("--file_url", required=True,
                               help="URL of the media file")
-    media_parser.add_argument("--content-type", default="",
+    media_parser.add_argument("--content_type", default="",
                               help="MIME type (e.g. image/jpeg, video/mp4)")
-    media_parser.add_argument("--thumbnail-url", default="",
+    media_parser.add_argument("--thumbnail_url", default="",
                               help="Thumbnail URL for the media")
-    media_parser.add_argument("--force-refresh", action="store_true",
+    media_parser.add_argument("--force_refresh", action="store_true",
                               help="Force the platform to re-fetch the file")
     _add_suggestion_args(media_parser)
 
@@ -136,14 +136,14 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser = sub.add_parser("status", help="Check message delivery status")
     status_parser.add_argument("--to", required=True, type=validate_phone,
                                help="Recipient phone (E.164)")
-    status_parser.add_argument("--message-id", required=True,
+    status_parser.add_argument("--message_id", required=True,
                                help="Message ID to check")
 
     # --- revoke ---
     revoke_parser = sub.add_parser("revoke", help="Revoke a sent message")
     revoke_parser.add_argument("--to", required=True, type=validate_phone,
                                help="Recipient phone (E.164)")
-    revoke_parser.add_argument("--message-id", required=True,
+    revoke_parser.add_argument("--message_id", required=True,
                                help="Message ID to revoke")
 
     # --- capability ---
@@ -158,7 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
     event_parser.add_argument("--type", required=True, dest="event_type",
                               choices=["IS_TYPING", "READ"],
                               help="Event type")
-    event_parser.add_argument("--message-id", default="",
+    event_parser.add_argument("--message_id", default="",
                               help="Message ID (required for READ events)")
 
     # --- tester ---
@@ -337,7 +337,7 @@ def _cmd_capability(client: RCSClient, args) -> int:
 
 def _cmd_event(client: RCSClient, args) -> int:
     if args.event_type == "READ" and not args.message_id:
-        print_error("--message-id is required for READ events")
+        print_error("--message_id is required for READ events")
         return EXIT_BAD_ARGS
     result = client.send_event(args.to, args.event_type, args.message_id)
     print_result(result, format_event_result, args.event_type,
